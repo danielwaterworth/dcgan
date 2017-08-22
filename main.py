@@ -92,7 +92,7 @@ def main(_):
     net_g_name = os.path.join(save_dir, 'net_g.npz')
     net_d_name = os.path.join(save_dir, 'net_d.npz')
 
-    data_files = glob(os.path.join("./data", FLAGS.dataset, "*.jpg"))
+    data_files = glob(os.path.join("./data", FLAGS.dataset, "*.png"))
 
     sample_seed = np.random.normal(loc=0.0, scale=1.0, size=(FLAGS.sample_size, z_dim)).astype(np.float32)# sample_seed = np.random.uniform(low=-1, high=1, size=(FLAGS.sample_size, z_dim)).astype(np.float32)
 
