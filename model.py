@@ -171,8 +171,6 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
     return n, logits
 
 def discriminator_simplified_api(inputs, is_train=True, reuse=False):
-    inputs = inputs + tf.random_normal(inputs.shape)/10
-
     df_dim = 64 # Dimension of discrim filters in first conv layer. [64]
     c_dim = FLAGS.c_dim # n_color 3
     batch_size = FLAGS.batch_size # 64
