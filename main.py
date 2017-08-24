@@ -32,7 +32,6 @@ flags.DEFINE_string("dataset", "celebA", "The name of dataset [celebA, mnist, ls
 flags.DEFINE_string("checkpoint_dir", "checkpoint", "Directory name to save the checkpoints [checkpoint]")
 flags.DEFINE_string("sample_dir", "samples", "Directory name to save the image samples [samples]")
 flags.DEFINE_boolean("is_train", False, "True for training, False for testing [False]")
-flags.DEFINE_boolean("is_crop", False, "True for training, False for testing [False]")
 flags.DEFINE_boolean("visualize", False, "True for visualizing, False for nothing [False]")
 FLAGS = flags.FLAGS
 
@@ -104,7 +103,7 @@ def main(_):
 
         ## update sample files based on shuffled data
         sample_files = data_files[0:FLAGS.sample_size]
-        sample = [get_image(sample_file, FLAGS.image_size, is_crop=FLAGS.is_crop, resize_w=FLAGS.output_size, is_grayscale = 0) for sample_file in sample_files]
+        sample = [get_image(sample_file, FLAGS.image_size, is_crop=False, resize_w=FLAGS.output_size, is_grayscale = 0) for sample_file in sample_files]
         sample_images = np.array(sample).astype(np.float32)
         print("[*] Sample images updated!")
 
@@ -115,7 +114,7 @@ def main(_):
             batch_files = data_files[idx*FLAGS.batch_size:(idx+1)*FLAGS.batch_size]
             ## get real images
             # more image augmentation functions in http://tensorlayer.readthedocs.io/en/latest/modules/prepro.html
-            batch = [get_image(batch_file, FLAGS.image_size, is_crop=FLAGS.is_crop, resize_w=FLAGS.output_size, is_grayscale = 0) for batch_file in batch_files]
+            batch = [get_image(batch_file, FLAGS.image_size, is_crop=False, resize_w=FLAGS.output_size, is_grayscale = 0) for batch_file in batch_files]
             batch_images = np.array(batch).astype(np.float32)
             batch_z = np.random.normal(loc=0.0, scale=1.0, size=(FLAGS.sample_size, z_dim)).astype(np.float32)  # batch_z = np.random.uniform(low=-1, high=1, size=(FLAGS.batch_size, z_dim)).astype(np.float32)
             start_time = time.time()
