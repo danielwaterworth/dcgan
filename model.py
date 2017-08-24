@@ -210,7 +210,7 @@ def discriminator_simplified_api(inputs, is_train=True, reuse=False):
             Conv2d(
                 net_h1,
                 df_dim*4,
-                (6, 6),
+                (3, 3),
                 act=None,
                 padding='VALID',
                 W_init=w_init,
@@ -228,14 +228,35 @@ def discriminator_simplified_api(inputs, is_train=True, reuse=False):
             )
 
         net_h3 = \
-            FlattenLayer(
+            Conv2d(
                 net_h2,
+                df_dim*4,
+                (4, 4),
+                act=None,
+                padding='VALID',
+                W_init=w_init,
+                b_init=None,
+                name='d/h2/conv2d',
+            )
+
+        net_h3 = \
+            BatchNormLayer(
+                net_h3,
+                act=lambda x: tl.act.lrelu(x, 0.2),
+                is_train=is_train,
+                gamma_init=gamma_init,
+                name='d/h2/batch_norm',
+            )
+
+        net_h4 = \
+            FlattenLayer(
+                net_h3,
                 name='d/h4/flatten',
             )
 
         net_h4 = \
             DenseLayer(
-                net_h3,
+                net_h4,
                 n_units=1,
                 act=tf.identity,
                 W_init=w_init,
