@@ -177,25 +177,25 @@ def discriminator_simplified_api(inputs, is_train=True, reuse=False):
                 net_in,
                 df_dim,
                 (5, 5),
-                (2, 2),
                 act=lambda x: tl.act.lrelu(x, 0.2),
-                padding='SAME',
+                padding='VALID',
                 W_init=w_init,
                 name='d/h0/conv2d',
             )
+        net_h0.outputs = tf.space_to_depth(net_h0.outputs, 2)
 
         net_h1 = \
             Conv2d(
                 net_h0,
                 df_dim*2,
                 (5, 5),
-                (2, 2),
                 act=None,
-                padding='SAME',
+                padding='VALID',
                 W_init=w_init,
                 b_init=None,
                 name='d/h1/conv2d'
             )
+        net_h1.outputs = tf.space_to_depth(net_h1.outputs, 2)
 
         net_h1 = \
             BatchNormLayer(
@@ -210,10 +210,9 @@ def discriminator_simplified_api(inputs, is_train=True, reuse=False):
             Conv2d(
                 net_h1,
                 df_dim*4,
-                (5, 5),
-                (2, 2),
+                (6, 6),
                 act=None,
-                padding='SAME',
+                padding='VALID',
                 W_init=w_init,
                 b_init=None,
                 name='d/h2/conv2d',
@@ -229,36 +228,14 @@ def discriminator_simplified_api(inputs, is_train=True, reuse=False):
             )
 
         net_h3 = \
-            Conv2d(
-                net_h2,
-                df_dim*8,
-                (5, 5),
-                (2, 2),
-                act=None,
-                padding='SAME',
-                W_init=w_init,
-                b_init=None,
-                name='d/h3/conv2d',
-            )
-
-        net_h3 = \
-            BatchNormLayer(
-                net_h3,
-                act=lambda x: tl.act.lrelu(x, 0.2),
-                is_train=is_train,
-                gamma_init=gamma_init,
-                name='d/h3/batch_norm',
-            )
-
-        net_h4 = \
             FlattenLayer(
-                net_h3,
+                net_h2,
                 name='d/h4/flatten',
             )
 
         net_h4 = \
             DenseLayer(
-                net_h4,
+                net_h3,
                 n_units=1,
                 act=tf.identity,
                 W_init=w_init,
