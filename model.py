@@ -20,7 +20,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
         n = \
             DenseLayer(
                 n,
-                n_units=gf_dim*8*8*8,
+                n_units=gf_dim*4*10*10,
                 W_init=w_init,
                 b_init=None,
                 act=tf.identity,
@@ -30,7 +30,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
         n = \
             ReshapeLayer(
                 n,
-                shape=[-1, 8, 8, gf_dim*8],
+                shape=[-1, 10, 10, gf_dim*4],
                 name='g/h0/reshape',
             )
 
@@ -42,13 +42,12 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
                 gamma_init=gamma_init,
                 name='g/h0/batch_norm'
             )
-        n.outputs = tf.depth_to_space(n.outputs, 2)
 
         n = \
             Conv2d(
                 n,
                 gf_dim*4,
-                (5, 5),
+                (3, 3),
                 padding='VALID',
                 act=None,
                 W_init=w_init,
@@ -69,13 +68,13 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
         n = \
             Conv2d(
                 n,
-                gf_dim*2,
-                (6, 6),
+                gf_dim*4,
+                (5, 5),
                 padding='VALID',
                 act=None,
                 W_init=w_init,
                 b_init=None,
-                name='g/h2/decon2d'
+                name='g/h2/decon2d',
             )
 
         n = \
@@ -91,8 +90,8 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
         n = \
             Conv2d(
                 n,
-                gf_dim,
-                (5, 5),
+                gf_dim*2,
+                (6, 6),
                 padding='VALID',
                 act=None,
                 W_init=w_init,
@@ -113,12 +112,34 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
         n = \
             Conv2d(
                 n,
+                gf_dim,
+                (5, 5),
+                padding='VALID',
+                act=None,
+                W_init=w_init,
+                b_init=None,
+                name='g/h4/decon2d'
+            )
+
+        n = \
+            BatchNormLayer(
+                n,
+                act=tf.nn.relu,
+                is_train=is_train,
+                gamma_init=gamma_init,
+                name='g/h4/batch_norm'
+            )
+        n.outputs = tf.depth_to_space(n.outputs, 2)
+
+        n = \
+            Conv2d(
+                n,
                 c_dim,
                 (5, 5),
                 padding='VALID',
                 act=None,
                 W_init=w_init,
-                name='g/h4/decon2d'
+                name='g/h5/decon2d'
             )
 
         logits = n.outputs
