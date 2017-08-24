@@ -10,7 +10,6 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
     image_size = 64
     gf_dim = 64 # Dimension of gen filters in first conv layer. [64]
     c_dim = FLAGS.c_dim # n_color 3
-    batch_size = FLAGS.batch_size # 64
     w_init = tf.random_normal_initializer(stddev=0.02)
     gamma_init = tf.random_normal_initializer(1., 0.02)
     with tf.variable_scope("generator", reuse=reuse):
@@ -51,7 +50,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
                 is_scale=True,
                 method=1,
                 align_corners=False,
-                name='up1/upsample2d'
+                name='up1/upsample2d1'
             )
 
         n = \
@@ -59,9 +58,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
                 n,
                 gf_dim*4,
                 (5, 5),
-                out_size=(11, 11),
-                padding='SAME',
-                batch_size=batch_size,
+                padding='VALID',
                 act=None,
                 W_init=w_init,
                 b_init=None,
@@ -84,7 +81,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
                 is_scale=True,
                 method=1,
                 align_corners=False,
-                name='up1/upsample2d'
+                name='up1/upsample2d2'
             )
 
         n = \
@@ -92,9 +89,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
                 n,
                 gf_dim*2,
                 (6, 6),
-                out_size=(17, 17),
-                padding='SAME',
-                batch_size=batch_size,
+                padding='VALID',
                 act=None,
                 W_init=w_init,
                 b_init=None,
@@ -117,7 +112,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
                 is_scale=True,
                 method=1,
                 align_corners=False,
-                name='up1/upsample2d'
+                name='up1/upsample2d3'
             )
 
         n = \
@@ -125,9 +120,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
                 n,
                 gf_dim,
                 (5, 5),
-                out_size=(34, 34),
                 padding='VALID',
-                batch_size=batch_size,
                 act=None,
                 W_init=w_init,
                 b_init=None,
@@ -150,7 +143,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
                 is_scale=True,
                 method=1,
                 align_corners=False,
-                name='up1/upsample2d'
+                name='up1/upsample2d4'
             )
 
         n = \
@@ -158,9 +151,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
                 n,
                 c_dim,
                 (5, 5),
-                out_size=(64, 64),
                 padding='VALID',
-                batch_size=batch_size,
                 act=None,
                 W_init=w_init,
                 name='g/h4/decon2d'
