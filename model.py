@@ -200,7 +200,7 @@ def discriminator_simplified_api(inputs, is_train=True, reuse=False):
                 padding='VALID',
                 W_init=w_init,
                 b_init=None,
-                name='d/h2/conv2d',
+                name='d/h3/conv2d',
             )
 
         net_h3 = \
@@ -209,7 +209,7 @@ def discriminator_simplified_api(inputs, is_train=True, reuse=False):
                 act=lambda x: tl.act.lrelu(x, 0.2),
                 is_train=is_train,
                 gamma_init=gamma_init,
-                name='d/h2/batch_norm',
+                name='d/h3/batch_norm',
             )
 
         net_h4 = \
