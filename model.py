@@ -24,6 +24,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
                 net_in,
                 n_units=gf_dim*8*s16*s16,
                 W_init=w_init,
+                b_init=None,
                 act=tf.identity,
                 name='g/h0/lin'
             )
@@ -55,6 +56,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
                 batch_size=batch_size,
                 act=None,
                 W_init=w_init,
+                b_init=None,
                 name='g/h1/decon2d',
             )
 
@@ -78,6 +80,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
                 batch_size=batch_size,
                 act=None,
                 W_init=w_init,
+                b_init=None,
                 name='g/h2/decon2d'
             )
 
@@ -101,6 +104,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
                 batch_size=batch_size,
                 act=None,
                 W_init=w_init,
+                b_init=None,
                 name='g/h3/decon2d'
             )
 
@@ -165,6 +169,7 @@ def discriminator_simplified_api(inputs, is_train=True, reuse=False):
                 act=None,
                 padding='SAME',
                 W_init=w_init,
+                b_init=None,
                 name='d/h1/conv2d'
             )
 
@@ -186,6 +191,7 @@ def discriminator_simplified_api(inputs, is_train=True, reuse=False):
                 act=None,
                 padding='SAME',
                 W_init=w_init,
+                b_init=None,
                 name='d/h2/conv2d',
             )
 
@@ -207,6 +213,7 @@ def discriminator_simplified_api(inputs, is_train=True, reuse=False):
                 act=None,
                 padding='SAME',
                 W_init=w_init,
+                b_init=None,
                 name='d/h3/conv2d',
             )
 
