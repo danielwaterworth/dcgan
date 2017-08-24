@@ -8,7 +8,6 @@ FLAGS = flags.FLAGS
 
 def generator_simplified_api(inputs, is_train=True, reuse=False):
     image_size = 64
-    s2, s4, s8, s16 = int(image_size/2), int(image_size/4), int(image_size/8), int(image_size/16)
     gf_dim = 64 # Dimension of gen filters in first conv layer. [64]
     c_dim = FLAGS.c_dim # n_color 3
     batch_size = FLAGS.batch_size # 64
@@ -17,41 +16,50 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
     with tf.variable_scope("generator", reuse=reuse):
         tl.layers.set_name_reuse(reuse)
 
-        net_in = InputLayer(inputs, name='g/in')
+        n = InputLayer(inputs, name='g/in')
 
-        net_h0 = \
+        n = \
             DenseLayer(
-                net_in,
-                n_units=gf_dim*8*s16*s16,
+                n,
+                n_units=gf_dim*8*8*8,
                 W_init=w_init,
                 b_init=None,
                 act=tf.identity,
                 name='g/h0/lin'
             )
 
-        net_h0 = \
+        n = \
             ReshapeLayer(
-                net_h0,
-                shape=[-1, s16, s16, gf_dim*8],
+                n,
+                shape=[-1, 8, 8, gf_dim*8],
                 name='g/h0/reshape',
             )
 
-        net_h0 = \
+        n = \
             BatchNormLayer(
-                net_h0,
+                n,
                 act=tf.nn.relu,
                 is_train=is_train,
                 gamma_init=gamma_init,
                 name='g/h0/batch_norm'
             )
 
-        net_h1 = \
-            DeConv2d(
-                net_h0,
+        n = \
+            UpSampling2dLayer(
+                n,
+                size=[2, 2],
+                is_scale=True,
+                method=1,
+                align_corners=False,
+                name='up1/upsample2d'
+            )
+
+        n = \
+            Conv2d(
+                n,
                 gf_dim*4,
                 (5, 5),
-                out_size=(s8, s8),
-                strides=(2, 2),
+                out_size=(11, 11),
                 padding='SAME',
                 batch_size=batch_size,
                 act=None,
@@ -60,22 +68,31 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
                 name='g/h1/decon2d',
             )
 
-        net_h1 = \
+        n = \
             BatchNormLayer(
-                net_h1,
+                n,
                 act=tf.nn.relu,
                 is_train=is_train,
                 gamma_init=gamma_init,
                 name='g/h1/batch_norm'
             )
 
-        net_h2 = \
-            DeConv2d(
-                net_h1,
+        n = \
+            UpSampling2dLayer(
+                n,
+                size=[2, 2],
+                is_scale=True,
+                method=1,
+                align_corners=False,
+                name='up1/upsample2d'
+            )
+
+        n = \
+            Conv2d(
+                n,
                 gf_dim*2,
-                (5, 5),
-                out_size=(s4, s4),
-                strides=(2, 2),
+                (6, 6),
+                out_size=(17, 17),
                 padding='SAME',
                 batch_size=batch_size,
                 act=None,
@@ -84,23 +101,32 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
                 name='g/h2/decon2d'
             )
 
-        net_h2 = \
+        n = \
             BatchNormLayer(
-                net_h2,
+                n,
                 act=tf.nn.relu,
                 is_train=is_train,
                 gamma_init=gamma_init,
                 name='g/h2/batch_norm'
             )
 
-        net_h3 = \
-            DeConv2d(
-                net_h2,
+        n = \
+            UpSampling2dLayer(
+                n,
+                size=[2, 2],
+                is_scale=True,
+                method=1,
+                align_corners=False,
+                name='up1/upsample2d'
+            )
+
+        n = \
+            Conv2d(
+                n,
                 gf_dim,
                 (5, 5),
-                out_size=(s2, s2),
-                strides=(2, 2),
-                padding='SAME',
+                out_size=(34, 34),
+                padding='VALID',
                 batch_size=batch_size,
                 act=None,
                 W_init=w_init,
@@ -108,32 +134,41 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
                 name='g/h3/decon2d'
             )
 
-        net_h3 = \
+        n = \
             BatchNormLayer(
-                net_h3,
+                n,
                 act=tf.nn.relu,
                 is_train=is_train,
                 gamma_init=gamma_init,
                 name='g/h3/batch_norm'
             )
 
-        net_h4 = \
-            DeConv2d(
-                net_h3,
+        n = \
+            UpSampling2dLayer(
+                n,
+                size=[2, 2],
+                is_scale=True,
+                method=1,
+                align_corners=False,
+                name='up1/upsample2d'
+            )
+
+        n = \
+            Conv2d(
+                n,
                 c_dim,
                 (5, 5),
-                out_size=(image_size, image_size),
-                strides=(2, 2),
-                padding='SAME',
+                out_size=(64, 64),
+                padding='VALID',
                 batch_size=batch_size,
                 act=None,
                 W_init=w_init,
                 name='g/h4/decon2d'
             )
 
-        logits = net_h4.outputs
-        net_h4.outputs = tf.nn.tanh(net_h4.outputs)
-    return net_h4, logits
+        logits = n.outputs
+        n.outputs = tf.nn.tanh(n.outputs)
+    return n, logits
 
 def discriminator_simplified_api(inputs, is_train=True, reuse=False):
     inputs = inputs + tf.random_normal(inputs.shape)/10
