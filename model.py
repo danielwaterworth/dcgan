@@ -42,16 +42,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
                 gamma_init=gamma_init,
                 name='g/h0/batch_norm'
             )
-
-        n = \
-            UpSampling2dLayer(
-                n,
-                size=[2, 2],
-                is_scale=True,
-                method=1,
-                align_corners=False,
-                name='up1/upsample2d1'
-            )
+        n.outputs = tf.depth_to_space(n.outputs, 2)
 
         n = \
             Conv2d(
@@ -73,16 +64,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
                 gamma_init=gamma_init,
                 name='g/h1/batch_norm'
             )
-
-        n = \
-            UpSampling2dLayer(
-                n,
-                size=[2, 2],
-                is_scale=True,
-                method=1,
-                align_corners=False,
-                name='up1/upsample2d2'
-            )
+        n.outputs = tf.depth_to_space(n.outputs, 2)
 
         n = \
             Conv2d(
@@ -104,16 +86,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
                 gamma_init=gamma_init,
                 name='g/h2/batch_norm'
             )
-
-        n = \
-            UpSampling2dLayer(
-                n,
-                size=[2, 2],
-                is_scale=True,
-                method=1,
-                align_corners=False,
-                name='up1/upsample2d3'
-            )
+        n.outputs = tf.depth_to_space(n.outputs, 2)
 
         n = \
             Conv2d(
@@ -135,16 +108,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
                 gamma_init=gamma_init,
                 name='g/h3/batch_norm'
             )
-
-        n = \
-            UpSampling2dLayer(
-                n,
-                size=[2, 2],
-                is_scale=True,
-                method=1,
-                align_corners=False,
-                name='up1/upsample2d4'
-            )
+        n.outputs = tf.depth_to_space(n.outputs, 2)
 
         n = \
             Conv2d(
