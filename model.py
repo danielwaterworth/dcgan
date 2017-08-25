@@ -20,7 +20,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
         n = \
             DenseLayer(
                 n,
-                n_units=gf_dim*4*8*8,
+                n_units=gf_dim*4*12*12,
                 W_init=w_init,
                 b_init=None,
                 act=tf.identity,
@@ -39,7 +39,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
         n = \
             ReshapeLayer(
                 n,
-                shape=[-1, 8, 8, gf_dim*4],
+                shape=[-1, 12, 12, gf_dim*4],
                 name='g/h0/reshape',
             )
 
@@ -47,7 +47,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
             Conv2d(
                 n,
                 gf_dim*4,
-                (3, 3),
+                (5, 5),
                 padding='VALID',
                 act=None,
                 W_init=w_init,
@@ -69,7 +69,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
             Conv2d(
                 n,
                 gf_dim*4,
-                (3, 3),
+                (5, 5),
                 padding='VALID',
                 act=None,
                 W_init=w_init,
@@ -91,7 +91,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
             Conv2d(
                 n,
                 gf_dim*2,
-                (3, 3),
+                (5, 5),
                 padding='VALID',
                 act=None,
                 W_init=w_init,
@@ -113,7 +113,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
             Conv2d(
                 n,
                 gf_dim,
-                (3, 3),
+                (5, 5),
                 padding='VALID',
                 act=None,
                 W_init=w_init,
@@ -135,7 +135,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
             Conv2d(
                 n,
                 3,
-                (5, 5),
+                (9, 9),
                 padding='VALID',
                 act=None,
                 W_init=w_init,
