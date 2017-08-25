@@ -28,19 +28,19 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
             )
 
         n = \
-            ReshapeLayer(
-                n,
-                shape=[-1, 10, 10, gf_dim*4],
-                name='g/h0/reshape',
-            )
-
-        n = \
             BatchNormLayer(
                 n,
                 act=tf.nn.relu,
                 is_train=is_train,
                 gamma_init=gamma_init,
                 name='g/h0/batch_norm'
+            )
+
+        n = \
+            ReshapeLayer(
+                n,
+                shape=[-1, 10, 10, gf_dim*4],
+                name='g/h0/reshape',
             )
 
         n = \
