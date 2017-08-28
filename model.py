@@ -167,7 +167,6 @@ def discriminator_simplified_api(inputs, is_train=True, reuse=False):
                 W_init=w_init,
                 name='d/h0/conv2d',
             )
-        net_h0.outputs = tf.space_to_depth(net_h0.outputs, 2)
 
         net_h1 = \
             Conv2d(
@@ -180,7 +179,6 @@ def discriminator_simplified_api(inputs, is_train=True, reuse=False):
                 b_init=None,
                 name='d/h1/conv2d'
             )
-        net_h1.outputs = tf.space_to_depth(net_h1.outputs, 2)
 
         net_h1 = \
             BatchNormLayer(
@@ -191,11 +189,13 @@ def discriminator_simplified_api(inputs, is_train=True, reuse=False):
                 name='d/h1/batch_norm'
             )
 
+        net_h1.outputs = tf.space_to_depth(net_h1.outputs, 2)
+
         net_h2 = \
             Conv2d(
                 net_h1,
                 df_dim*4,
-                (3, 3),
+                (5, 5),
                 act=None,
                 padding='VALID',
                 W_init=w_init,
@@ -212,11 +212,13 @@ def discriminator_simplified_api(inputs, is_train=True, reuse=False):
                 name='d/h2/batch_norm',
             )
 
+        net_h2.outputs = tf.space_to_depth(net_h2.outputs, 2)
+
         net_h3 = \
             Conv2d(
                 net_h2,
                 df_dim*4,
-                (4, 4),
+                (5, 5),
                 act=None,
                 padding='VALID',
                 W_init=w_init,
@@ -233,10 +235,33 @@ def discriminator_simplified_api(inputs, is_train=True, reuse=False):
                 name='d/h3/batch_norm',
             )
 
+        net_h3.outputs = tf.space_to_depth(net_h3.outputs, 2)
+
+        net_h3 = \
+            Conv2d(
+                net_h2,
+                df_dim*4,
+                (5, 5),
+                act=None,
+                padding='VALID',
+                W_init=w_init,
+                b_init=None,
+                name='d/h4/conv2d',
+            )
+
+        net_h3 = \
+            BatchNormLayer(
+                net_h3,
+                act=lambda x: tl.act.lrelu(x, 0.2),
+                is_train=is_train,
+                gamma_init=gamma_init,
+                name='d/h4/batch_norm',
+            )
+
         net_h4 = \
             FlattenLayer(
                 net_h3,
-                name='d/h4/flatten',
+                name='d/h5/flatten',
             )
 
         net_h4 = \
@@ -245,7 +270,7 @@ def discriminator_simplified_api(inputs, is_train=True, reuse=False):
                 n_units=1,
                 act=tf.identity,
                 W_init=w_init,
-                name='d/h4/lin_sigmoid',
+                name='d/h5/lin_sigmoid',
             )
 
         logits = net_h4.outputs
