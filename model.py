@@ -151,111 +151,30 @@ def discriminator_simplified_api(inputs, is_train=True, reuse=False):
                 name='d/h0/conv2d',
             )
 
-        net_h1 = \
-            Conv2d(
-                net_h0,
-                df_dim*2,
-                (5, 5),
-                act=None,
-                padding='VALID',
-                W_init=w_init,
-                b_init=None,
-                name='d/h1/conv2d'
-            )
+        net_h1 = resnet_module(net_h0, df_dim*2, 'd/h1')
+        net_h1 = LambdaLayer(net_h1, lambda x: tf.space_to_depth(x, 2))
+        net_h2 = resnet_module(net_h1, df_dim*2, 'd/h2')
+        net_h2 = LambdaLayer(net_h2, lambda x: tf.space_to_depth(x, 2))
+        net_h3 = resnet_module(net_h2, df_dim*2, 'd/h3')
+        net_h3 = LambdaLayer(net_h3, lambda x: tf.space_to_depth(x, 2))
+        net_h4 = resnet_module(net_h3, df_dim*2, 'd/h4')
+        net_h4 = LambdaLayer(net_h4, lambda x: tf.space_to_depth(x, 2))
 
-        net_h1 = \
-            BatchNormLayer(
-                net_h1,
-                act=lambda x: tl.act.lrelu(x, 0.2),
-                is_train=is_train,
-                gamma_init=gamma_init,
-                name='d/h1/batch_norm'
-            )
-
-        net_h1.outputs = tf.space_to_depth(net_h1.outputs, 2)
-
-        net_h2 = \
-            Conv2d(
-                net_h1,
-                df_dim*4,
-                (5, 5),
-                act=None,
-                padding='VALID',
-                W_init=w_init,
-                b_init=None,
-                name='d/h2/conv2d',
-            )
-
-        net_h2 = \
-            BatchNormLayer(
-                net_h2,
-                act=lambda x: tl.act.lrelu(x, 0.2),
-                is_train=is_train,
-                gamma_init=gamma_init,
-                name='d/h2/batch_norm',
-            )
-
-        net_h2.outputs = tf.space_to_depth(net_h2.outputs, 2)
-
-        net_h3 = \
-            Conv2d(
-                net_h2,
-                df_dim*4,
-                (5, 5),
-                act=None,
-                padding='VALID',
-                W_init=w_init,
-                b_init=None,
-                name='d/h3/conv2d',
-            )
-
-        net_h3 = \
-            BatchNormLayer(
-                net_h3,
-                act=lambda x: tl.act.lrelu(x, 0.2),
-                is_train=is_train,
-                gamma_init=gamma_init,
-                name='d/h3/batch_norm',
-            )
-
-        net_h3.outputs = tf.space_to_depth(net_h3.outputs, 2)
-
-        net_h3 = \
-            Conv2d(
-                net_h2,
-                df_dim*4,
-                (5, 5),
-                act=None,
-                padding='VALID',
-                W_init=w_init,
-                b_init=None,
-                name='d/h4/conv2d',
-            )
-
-        net_h3 = \
-            BatchNormLayer(
-                net_h3,
-                act=lambda x: tl.act.lrelu(x, 0.2),
-                is_train=is_train,
-                gamma_init=gamma_init,
-                name='d/h4/batch_norm',
-            )
-
-        net_h4 = \
+        net_h5 = \
             FlattenLayer(
-                net_h3,
+                net_h4,
                 name='d/h5/flatten',
             )
 
-        net_h4 = \
+        net_h5 = \
             DenseLayer(
-                net_h4,
+                net_h5,
                 n_units=1,
                 act=tf.identity,
                 W_init=w_init,
                 name='d/h5/lin_sigmoid',
             )
 
-        logits = net_h4.outputs
-        net_h4.outputs = tf.nn.sigmoid(net_h4.outputs)
-    return net_h4, logits
+        logits = net_h5.outputs
+        net_h5.outputs = tf.nn.sigmoid(net_h5.outputs)
+    return net_h5, logits
