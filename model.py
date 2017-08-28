@@ -6,9 +6,60 @@ from tensorlayer.layers import *
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 
+def resnet_module(input, n, name):
+    net = \
+        Conv2d(
+            input,
+            n,
+            (3, 3),
+            padding='VALID',
+            act=None,
+            W_init=w_init,
+            b_init=None,
+            name=name+'/r0/decon2d',
+        )
+
+    net = \
+        BatchNormLayer(
+            net,
+            act=tf.nn.relu,
+            is_train=is_train,
+            gamma_init=gamma_init,
+            name=name+'/r0/batch_norm'
+        )
+
+    net = \
+        Conv2d(
+            net,
+            n,
+            (3, 3),
+            padding='VALID',
+            act=None,
+            W_init=w_init,
+            b_init=None,
+            name=name+'/r1/decon2d',
+        )
+
+    net = \
+        BatchNormLayer(
+            net,
+            act=tf.nn.relu,
+            is_train=is_train,
+            gamma_init=gamma_init,
+            name=name+'/r1/batch_norm'
+        )
+
+    input = \
+        LambdaLayer(
+            input,
+            fn=lambda x: x[:, 2:-2, 2:-2, :],
+        )
+
+    return ElementwiseLayer([net, input], 'ADD')
+
 def generator_simplified_api(inputs, is_train=True, reuse=False):
     image_size = 64
-    gf_dim = 64 # Dimension of gen filters in first conv layer. [64]
+    gf_dim = 32 # Dimension of gen filters in first conv layer. [32]
     c_dim = FLAGS.c_dim # n_color 3
     w_init = tf.random_normal_initializer(stddev=0.02)
     gamma_init = tf.random_normal_initializer(1., 0.02)
@@ -39,97 +90,29 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
         n = \
             ReshapeLayer(
                 n,
-                shape=[-1, 8, 8, gf_dim*4],
+                shape=[-1, 12, 12, gf_dim*4],
                 name='g/h0/reshape',
             )
 
-        n = \
-            Conv2d(
-                n,
-                gf_dim*4,
-                (3, 3),
-                padding='VALID',
-                act=None,
-                W_init=w_init,
-                b_init=None,
-                name='g/h1/decon2d',
-            )
-
-        n = \
-            BatchNormLayer(
-                n,
-                act=tf.nn.relu,
-                is_train=is_train,
-                gamma_init=gamma_init,
-                name='g/h1/batch_norm'
-            )
-        n.outputs = tf.depth_to_space(n.outputs, 2)
-
-        n = \
-            Conv2d(
-                n,
-                gf_dim*4,
-                (3, 3),
-                padding='VALID',
-                act=None,
-                W_init=w_init,
-                b_init=None,
-                name='g/h2/decon2d',
-            )
-
-        n = \
-            BatchNormLayer(
-                n,
-                act=tf.nn.relu,
-                is_train=is_train,
-                gamma_init=gamma_init,
-                name='g/h2/batch_norm'
-            )
-        n.outputs = tf.depth_to_space(n.outputs, 2)
-
-        n = \
-            Conv2d(
-                n,
-                gf_dim*2,
-                (3, 3),
-                padding='VALID',
-                act=None,
-                W_init=w_init,
-                b_init=None,
-                name='g/h3/decon2d'
-            )
-
-        n = \
-            BatchNormLayer(
-                n,
-                act=tf.nn.relu,
-                is_train=is_train,
-                gamma_init=gamma_init,
-                name='g/h3/batch_norm'
-            )
-        n.outputs = tf.depth_to_space(n.outputs, 2)
+        n = resnet_module(n, gf_dim*8, 'g/h1')
+        n = LambdaLayer(n, lambda x: tf.depth_to_space(x, 2))
+        n = resnet_module(n, gf_dim*4, 'g/h2')
+        n = LambdaLayer(n, lambda x: tf.depth_to_space(x, 2))
+        n = resnet_module(n, gf_dim*2, 'g/h3')
+        n = LambdaLayer(n, lambda x: tf.depth_to_space(x, 2))
+        n = resnet_module(n, gf_dim, 'g/h4')
+        n = LambdaLayer(n, lambda x: tf.depth_to_space(x, 2))
 
         n = \
             Conv2d(
                 n,
                 gf_dim,
-                (3, 3),
+                (5, 5),
                 padding='VALID',
                 act=None,
                 W_init=w_init,
-                b_init=None,
-                name='g/h4/decon2d'
+                name='g/h5/decon2d'
             )
-
-        n = \
-            BatchNormLayer(
-                n,
-                act=tf.nn.relu,
-                is_train=is_train,
-                gamma_init=gamma_init,
-                name='g/h4/batch_norm'
-            )
-        n.outputs = tf.depth_to_space(n.outputs, 2)
 
         n = \
             Conv2d(
@@ -139,7 +122,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
                 padding='VALID',
                 act=None,
                 W_init=w_init,
-                name='g/h5/decon2d'
+                name='g/h6/decon2d'
             )
 
         logits = n.outputs
