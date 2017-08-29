@@ -6,6 +6,32 @@ from tensorlayer.layers import *
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 
+def fake_resnet_module(input, output_dim, name, is_train=True):
+    w_init = tf.random_normal_initializer(stddev=0.02)
+    gamma_init = tf.random_normal_initializer(1., 0.02)
+
+    net = \
+        Conv2d(
+            input,
+            output_dim,
+            (5, 5),
+            padding='VALID',
+            act=None,
+            W_init=w_init,
+            b_init=None,
+            name=name+'/r0/decon2d',
+        )
+
+    return \
+        BatchNormLayer(
+            net,
+            act=tf.nn.relu,
+            is_train=is_train,
+            gamma_init=gamma_init,
+            name=name+'/r0/batch_norm'
+        )
+
+
 def resnet_module(input, output_dim, name, is_train=True):
     w_init = tf.random_normal_initializer(stddev=0.02)
     gamma_init = tf.random_normal_initializer(1., 0.02)
@@ -162,7 +188,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
     return n, logits
 
 def discriminator_simplified_api(inputs, is_train=True, reuse=False):
-    df_dim = 32 # Dimension of discrim filters in first conv layer. [64]
+    df_dim = 64 # Dimension of discrim filters in first conv layer. [64]
     c_dim = FLAGS.c_dim # n_color 3
     batch_size = FLAGS.batch_size # 64
     w_init = tf.random_normal_initializer(stddev=0.02)
@@ -183,11 +209,11 @@ def discriminator_simplified_api(inputs, is_train=True, reuse=False):
                 name='d/h0/conv2d',
             )
 
-        net_h1 = resnet_module(net_h0, df_dim*2, 'd/h1')
+        net_h1 = fake_resnet_module(net_h0, df_dim*2, 'd/h1')
         net_h1 = LambdaLayer(net_h1, lambda x: tf.space_to_depth(x, 2), name='d/l1')
-        net_h2 = resnet_module(net_h1, df_dim*4, 'd/h2')
+        net_h2 = fake_resnet_module(net_h1, df_dim*4, 'd/h2')
         net_h2 = LambdaLayer(net_h2, lambda x: tf.space_to_depth(x, 2), name='d/l2')
-        net_h3 = resnet_module(net_h2, df_dim*8, 'd/h3')
+        net_h3 = fake_resnet_module(net_h2, df_dim*8, 'd/h3')
         net_h3 = LambdaLayer(net_h3, lambda x: tf.space_to_depth(x, 2), name='d/l3')
 
         net_h4 = \
