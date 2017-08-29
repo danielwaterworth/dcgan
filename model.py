@@ -153,24 +153,14 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
             )
 
         n = resnet_module(n, gf_dim*8, 'g/h1')
-        n = LambdaLayer(n, lambda x: tf.depth_to_space(x, 2), name='g/l1')
+        n = UpSampling2dLayer(n, [2, 2], name='g/u1')
         n = resnet_module(n, gf_dim*4, 'g/h2')
-        n = LambdaLayer(n, lambda x: tf.depth_to_space(x, 2), name='g/l2')
+        n = UpSampling2dLayer(n, [2, 2], name='g/u2')
         n = resnet_module(n, gf_dim*2, 'g/h3')
-        n = LambdaLayer(n, lambda x: tf.depth_to_space(x, 2), name='g/l3')
+        n = UpSampling2dLayer(n, [2, 2], name='g/u3')
         n = resnet_module(n, gf_dim, 'g/h4')
-        n = LambdaLayer(n, lambda x: tf.depth_to_space(x, 2), name='g/l4')
-
-        n = \
-            Conv2d(
-                n,
-                gf_dim,
-                (5, 5),
-                padding='VALID',
-                act=None,
-                W_init=w_init,
-                name='g/h5/decon2d'
-            )
+        n = UpSampling2dLayer(n, [2, 2], name='g/u4')
+        n = resnet_module(n, gf_dim, 'g/h5')
 
         n = \
             Conv2d(
