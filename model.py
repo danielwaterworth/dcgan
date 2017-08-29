@@ -6,7 +6,12 @@ from tensorlayer.layers import *
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 
-def resnet_module(input, n, name):
+def resnet_module(input, output_dim, name, is_train=True):
+    w_init = tf.random_normal_initializer(stddev=0.02)
+    gamma_init = tf.random_normal_initializer(1., 0.02)
+
+    n = input.outputs.shape[3]
+
     net = \
         Conv2d(
             input,
@@ -53,9 +58,36 @@ def resnet_module(input, n, name):
         LambdaLayer(
             input,
             fn=lambda x: x[:, 2:-2, 2:-2, :],
+            name=name+'/crop',
         )
 
-    return ElementwiseLayer([net, input], 'ADD')
+    net = \
+        ElementwiseLayer(
+            [net, input],
+            tf.add,
+            name=name+'/add',
+        )
+
+    net = \
+        Conv2d(
+            net,
+            output_dim,
+            (1, 1),
+            padding='VALID',
+            act=None,
+            W_init=w_init,
+            b_init=None,
+            name=name+'/r2/conv',
+        )
+
+    return \
+        BatchNormLayer(
+            net,
+            act=tf.nn.relu,
+            is_train=is_train,
+            gamma_init=gamma_init,
+            name=name+'/r2/batch_norm'
+        )
 
 def generator_simplified_api(inputs, is_train=True, reuse=False):
     image_size = 64
@@ -71,7 +103,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
         n = \
             DenseLayer(
                 n,
-                n_units=gf_dim*4*8*8,
+                n_units=gf_dim*4*12*12,
                 W_init=w_init,
                 b_init=None,
                 act=tf.identity,
@@ -95,13 +127,13 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
             )
 
         n = resnet_module(n, gf_dim*8, 'g/h1')
-        n = LambdaLayer(n, lambda x: tf.depth_to_space(x, 2))
+        n = LambdaLayer(n, lambda x: tf.depth_to_space(x, 2), name='g/l1')
         n = resnet_module(n, gf_dim*4, 'g/h2')
-        n = LambdaLayer(n, lambda x: tf.depth_to_space(x, 2))
+        n = LambdaLayer(n, lambda x: tf.depth_to_space(x, 2), name='g/l2')
         n = resnet_module(n, gf_dim*2, 'g/h3')
-        n = LambdaLayer(n, lambda x: tf.depth_to_space(x, 2))
+        n = LambdaLayer(n, lambda x: tf.depth_to_space(x, 2), name='g/l3')
         n = resnet_module(n, gf_dim, 'g/h4')
-        n = LambdaLayer(n, lambda x: tf.depth_to_space(x, 2))
+        n = LambdaLayer(n, lambda x: tf.depth_to_space(x, 2), name='g/l4')
 
         n = \
             Conv2d(
@@ -130,7 +162,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
     return n, logits
 
 def discriminator_simplified_api(inputs, is_train=True, reuse=False):
-    df_dim = 64 # Dimension of discrim filters in first conv layer. [64]
+    df_dim = 32 # Dimension of discrim filters in first conv layer. [64]
     c_dim = FLAGS.c_dim # n_color 3
     batch_size = FLAGS.batch_size # 64
     w_init = tf.random_normal_initializer(stddev=0.02)
@@ -152,29 +184,27 @@ def discriminator_simplified_api(inputs, is_train=True, reuse=False):
             )
 
         net_h1 = resnet_module(net_h0, df_dim*2, 'd/h1')
-        net_h1 = LambdaLayer(net_h1, lambda x: tf.space_to_depth(x, 2))
-        net_h2 = resnet_module(net_h1, df_dim*2, 'd/h2')
-        net_h2 = LambdaLayer(net_h2, lambda x: tf.space_to_depth(x, 2))
-        net_h3 = resnet_module(net_h2, df_dim*2, 'd/h3')
-        net_h3 = LambdaLayer(net_h3, lambda x: tf.space_to_depth(x, 2))
-        net_h4 = resnet_module(net_h3, df_dim*2, 'd/h4')
-        net_h4 = LambdaLayer(net_h4, lambda x: tf.space_to_depth(x, 2))
+        net_h1 = LambdaLayer(net_h1, lambda x: tf.space_to_depth(x, 2), name='d/l1')
+        net_h2 = resnet_module(net_h1, df_dim*4, 'd/h2')
+        net_h2 = LambdaLayer(net_h2, lambda x: tf.space_to_depth(x, 2), name='d/l2')
+        net_h3 = resnet_module(net_h2, df_dim*8, 'd/h3')
+        net_h3 = LambdaLayer(net_h3, lambda x: tf.space_to_depth(x, 2), name='d/l3')
 
-        net_h5 = \
+        net_h4 = \
             FlattenLayer(
-                net_h4,
+                net_h3,
                 name='d/h5/flatten',
             )
 
-        net_h5 = \
+        net_h4 = \
             DenseLayer(
-                net_h5,
+                net_h4,
                 n_units=1,
                 act=tf.identity,
                 W_init=w_init,
                 name='d/h5/lin_sigmoid',
             )
 
-        logits = net_h5.outputs
-        net_h5.outputs = tf.nn.sigmoid(net_h5.outputs)
-    return net_h5, logits
+        logits = net_h4.outputs
+        net_h4.outputs = tf.nn.sigmoid(net_h4.outputs)
+    return net_h4, logits
