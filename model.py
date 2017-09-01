@@ -63,7 +63,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
                 gamma_init=gamma_init,
                 name='g/h1/batch_norm'
             )
-        n = UpSampling2dLayer(n, [2, 2], method=1)
+        n = UpSampling2dLayer(n, [2, 2], method=1, name='g/up1')
 
         n = \
             Conv2d(
@@ -85,7 +85,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
                 gamma_init=gamma_init,
                 name='g/h2/batch_norm'
             )
-        n = UpSampling2dLayer(n, [2, 2], method=1)
+        n = UpSampling2dLayer(n, [2, 2], method=1, name='g/up2')
 
         n = \
             Conv2d(
@@ -107,7 +107,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
                 gamma_init=gamma_init,
                 name='g/h3/batch_norm'
             )
-        n = UpSampling2dLayer(n, [2, 2], method=1)
+        n = UpSampling2dLayer(n, [2, 2], method=1, name='g/up3')
 
         n = \
             Conv2d(
@@ -129,7 +129,7 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
                 gamma_init=gamma_init,
                 name='g/h4/batch_norm'
             )
-        n = UpSampling2dLayer(n, [2, 2], method=1)
+        n = UpSampling2dLayer(n, [2, 2], method=1, name='g/up4')
 
         n = \
             Conv2d(
