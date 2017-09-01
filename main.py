@@ -60,12 +60,12 @@ def main(_):
         ##========================= DEFINE TRAIN OPS =======================##
         # cost for updating discriminator and generator
         # discriminator: real images are labelled as 1
-        d_loss_real = tl.cost.mean_squared_error(d2_logits, tf.ones_like(d2_logits), name='dreal')
+        d_loss_real = tl.cost.mean_squared_error(d2_logits, tf.ones_like(d2_logits))
         # discriminator: images from generator (fake) are labelled as 0
-        d_loss_fake = tl.cost.mean_squared_error(d_logits, tf.zeros_like(d_logits), name='dfake')
+        d_loss_fake = tl.cost.mean_squared_error(d_logits, tf.zeros_like(d_logits))
         d_loss = d_loss_real + d_loss_fake
         # generator: try to make the the fake images look real (1)
-        g_loss = tl.cost.mean_squared_error(d_logits, tf.ones_like(d_logits), name='gfake')
+        g_loss = tl.cost.mean_squared_error(d_logits, tf.ones_like(d_logits))
 
         g_vars = tl.layers.get_variables_with_name('generator', True, True)
         d_vars = tl.layers.get_variables_with_name('discriminator', True, True)
